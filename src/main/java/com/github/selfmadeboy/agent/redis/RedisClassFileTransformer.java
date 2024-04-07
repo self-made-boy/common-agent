@@ -6,16 +6,17 @@ import javassist.CannotCompileException;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.NotFoundException;
-import lombok.extern.slf4j.Slf4j;
+import org.tinylog.Logger;
+
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
-import java.util.Map;
+
 import java.util.Objects;
 import java.util.Optional;
 
-@Slf4j
+
 public class RedisClassFileTransformer implements ClassFileTransformer {
 
 
@@ -37,7 +38,7 @@ public class RedisClassFileTransformer implements ClassFileTransformer {
 
 
         } catch (Exception e) {
-            log.error("agent redis transform failed: {} ", className, e);
+            Logger.error(e,"agent redis transform failed: {} ", className);
         }
 
         return classfileBuffer;
@@ -52,10 +53,10 @@ public class RedisClassFileTransformer implements ClassFileTransformer {
                 CtMethod method = ctClass.getMethod(k, v);
                 if (!method.isEmpty()) {
                     method.insertBefore(String.format("$1=\"%s:\"+$1;", config));
-                    log.info("agent enhance class {}#{}{}", ctClass.getName(), k, v);
+                    Logger.info("agent enhance class {}#{}{}", ctClass.getName(), k, v);
                 }
             } catch (NotFoundException e) {
-                log.warn("agent redis not found:{}#{}{}", ctClass.getName(), k, v);
+                Logger.warn("agent redis not found:{}#{}{}", ctClass.getName(), k, v);
             }
         }
 
@@ -69,25 +70,29 @@ public class RedisClassFileTransformer implements ClassFileTransformer {
 
         String config = TransformUtils.getConfigByKey(Constants.REDIS_ENV_KEY_NAME);
         try {
+            System.out.println();
             CtMethod method = ctClass.getMethod(Constants.SET_KEY_SERIALIZER_METHOD_NAME, Constants.SET_KEY_SERIALIZER_METHOD_SIGNATURE);
             if (Objects.equals(method.getDeclaringClass(), ctClass)) {
-                method.insertBefore(String.format("if (!($1 instanceof com.github.selfmadeboy.agent.redis.AssistantRedisSerializer)){this.keySerializer = com.github.selfmadeboy.agent.redis.AssistantRedisSerializer.instance($1,\"%s\");return;}", config));
-                log.info("agent enhance class:{}#{}{}", ctClass.getName(), Constants.SET_KEY_SERIALIZER_METHOD_NAME, Constants.SET_KEY_SERIALIZER_METHOD_SIGNATURE);
+                method.insertBefore(String.format("try {Class aClass = Class.forName(\"%s\");if (!aClass.isInstance($1)){this.keySerializer = com.github.selfmadeboy.agent.redis.AssistantRedisSerializer.instance($1,\"%s\");return;}} catch (Exception e) {throw new RuntimeException(e);}",Constants.ASSIST_CLASS_NAME, config));
+                Logger.info("agent enhance class:{}#{}{}", ctClass.getName(), Constants.SET_KEY_SERIALIZER_METHOD_NAME, Constants.SET_KEY_SERIALIZER_METHOD_SIGNATURE);
             }
 
+            System.out.println();
 
         } catch (NotFoundException e) {
-            log.warn("agent redis not found:{}#{}{}", ctClass.getName(), Constants.SET_KEY_SERIALIZER_METHOD_NAME, Constants.SET_KEY_SERIALIZER_METHOD_SIGNATURE);
+            Logger.warn("agent redis not found:{}#{}{}", ctClass.getName(), Constants.SET_KEY_SERIALIZER_METHOD_NAME, Constants.SET_KEY_SERIALIZER_METHOD_SIGNATURE);
         }
 
         try {
             CtMethod method = ctClass.getMethod(Constants.AFTER_PROPERTIES_SET_METHOD_NAME, Constants.AFTER_PROPERTIES_SET_METHOD_SIGNATURE);
             if (Objects.equals(method.getDeclaringClass(), ctClass)) {
-                method.insertAfter(String.format("if (!(this.keySerializer instanceof com.github.selfmadeboy.agent.redis.AssistantRedisSerializer)){ this.keySerializer = com.github.selfmadeboy.agent.redis.AssistantRedisSerializer.instance(this.keySerializer,\"%s\");}", config));
-                log.info("agent enhance class:{}#{}{}", ctClass.getName(), Constants.AFTER_PROPERTIES_SET_METHOD_NAME, Constants.AFTER_PROPERTIES_SET_METHOD_SIGNATURE);
+//                method.insertAfter(String.format("if (!(this.keySerializer instanceof com.github.selfmadeboy.agent.redis.AssistantRedisSerializer)){ this.keySerializer = com.github.selfmadeboy.agent.redis.AssistantRedisSerializer.instance(this.keySerializer,\"%s\");}", config));
+                method.insertAfter(String.format("try {Class aClass = Class.forName(\"%s\");if (!aClass.isInstance(this.keySerializer)){this.keySerializer = com.github.selfmadeboy.agent.redis.AssistantRedisSerializer.instance(this.keySerializer,\"%s\");}} catch (Exception e) {throw new RuntimeException(e);}",Constants.ASSIST_CLASS_NAME, config));
+
+                Logger.info("agent enhance class:{}#{}{}", ctClass.getName(), Constants.AFTER_PROPERTIES_SET_METHOD_NAME, Constants.AFTER_PROPERTIES_SET_METHOD_SIGNATURE);
             }
         } catch (NotFoundException e) {
-            log.warn("agent redis not found:{}#{}{}", ctClass.getName(), Constants.AFTER_PROPERTIES_SET_METHOD_NAME, Constants.AFTER_PROPERTIES_SET_METHOD_SIGNATURE);
+            Logger.warn("agent redis not found:{}#{}{}", ctClass.getName(), Constants.AFTER_PROPERTIES_SET_METHOD_NAME, Constants.AFTER_PROPERTIES_SET_METHOD_SIGNATURE);
         }
 
 

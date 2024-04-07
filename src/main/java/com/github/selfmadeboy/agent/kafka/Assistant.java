@@ -1,10 +1,12 @@
 package com.github.selfmadeboy.agent.kafka;
 
 import com.github.selfmadeboy.agent.TransformUtils;
-import lombok.extern.slf4j.Slf4j;
+import org.tinylog.Logger;
 
-@Slf4j
+
 public class Assistant {
+
+
 
     public static <K, V> org.apache.kafka.clients.consumer.ConsumerRecord<K, V> filter(org.apache.kafka.clients.consumer.ConsumerRecord<K, V> record,
                                                                                        org.springframework.kafka.support.Acknowledgment ack,
@@ -18,12 +20,12 @@ public class Assistant {
         if (_header != null && new String(_header.value()).equals(getEnv())) {
             return record;
         }
-        log.info("agent skip the record,topic:{},partition:{},offset:{}", record.topic(), record.partition(), record.offset());
+        Logger.info("agent skip the record,topic:{},partition:{},offset:{}", record.topic(), record.partition(), record.offset());
         if (ack != null) {
-            log.info("agent ack the record by Acknowledgment,topic:{},partition:{},offset:{}", record.topic(), record.partition(), record.offset());
+            Logger.info("agent ack the record by Acknowledgment,topic:{},partition:{},offset:{}", record.topic(), record.partition(), record.offset());
             ack.acknowledge();
         } else if (consumer != null) {
-            log.info("agent commit the record by consumer,topic:{},partition:{},offset:{}", record.topic(), record.partition(), record.offset());
+            Logger.info("agent commit the record by consumer,topic:{},partition:{},offset:{}", record.topic(), record.partition(), record.offset());
             java.util.HashMap<org.apache.kafka.common.TopicPartition, org.apache.kafka.clients.consumer.OffsetAndMetadata> offsets = new java.util.HashMap<>();
             offsets.put(new org.apache.kafka.common.TopicPartition(record.topic(), record.partition()), new org.apache.kafka.clients.consumer.OffsetAndMetadata(record.offset() + 1));
             consumer.commitSync(offsets);
@@ -49,18 +51,18 @@ public class Assistant {
                 ret.add(_record);
             }
 
-            log.info("agent skip a record of batch list,topic:{},partition:{},offset:{}", _record.topic(), _record.partition(), _record.offset());
+            Logger.info("agent skip a record of batch list,topic:{},partition:{},offset:{}", _record.topic(), _record.partition(), _record.offset());
 
         }
 
         if (ret.isEmpty()) {
-            log.info("agent skip all {} records", records.size());
+            Logger.info("agent skip all {} records", records.size());
 
             if (ack != null) {
-                log.info("agent ack all {} records by Acknowledgment", records.size());
+                Logger.info("agent ack all {} records by Acknowledgment", records.size());
                 ack.acknowledge();
             } else if (consumer != null) {
-                log.info("agent ack all {} records by consumer", records.size());
+                Logger.info("agent ack all {} records by consumer", records.size());
                 java.util.Map<String, java.util.List<org.apache.kafka.clients.consumer.ConsumerRecord<K, V>>> _collect = records.stream().collect(java.util.stream.Collectors.groupingBy(org.apache.kafka.clients.consumer.ConsumerRecord::topic));
                 java.util.Map<String, java.util.Map<Integer, Long>> map = new java.util.HashMap<>();
                 _collect.forEach((k, v) -> {

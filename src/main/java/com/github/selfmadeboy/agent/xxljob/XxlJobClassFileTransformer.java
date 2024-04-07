@@ -3,7 +3,8 @@ package com.github.selfmadeboy.agent.xxljob;
 
 import com.github.selfmadeboy.agent.TransformUtils;
 import javassist.*;
-import lombok.extern.slf4j.Slf4j;
+import org.tinylog.Logger;
+
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
@@ -11,7 +12,7 @@ import java.security.ProtectionDomain;
 import java.util.Objects;
 import java.util.Optional;
 
-@Slf4j
+
 public class XxlJobClassFileTransformer implements ClassFileTransformer {
 
     @Override
@@ -30,13 +31,13 @@ public class XxlJobClassFileTransformer implements ClassFileTransformer {
                 CtMethod method = ctClass.getMethod(Constants.METHOD_NAME, Constants.METHOD_SIGNATURE);
                 if (Objects.equals(method.getDeclaringClass(), ctClass)) {
                     method.insertBefore(String.format("if ($1!=null && !$1.isEmpty()){$1=$1 + \"-%s\";}",configEnv));
-                    log.info("agent enhance {}#{}{}",Constants.CLASS_NAME,Constants.METHOD_NAME,Constants.METHOD_SIGNATURE);
+                    Logger.info("agent enhance {}#{}{}",Constants.CLASS_NAME,Constants.METHOD_NAME,Constants.METHOD_SIGNATURE);
                 }
                 return ctClass.toBytecode();
             } catch (NotFoundException e) {
-                log.warn("agent not found target method: {}#{}{}",Constants.CLASS_NAME,Constants.METHOD_NAME,Constants.METHOD_SIGNATURE);
+                Logger.warn("agent not found target method: {}#{}{}",Constants.CLASS_NAME,Constants.METHOD_NAME,Constants.METHOD_SIGNATURE);
             } catch (Exception e) {
-                log.error("agent xxl failed",e);
+                Logger.error(e,"agent xxl failed");
             }
 
         }

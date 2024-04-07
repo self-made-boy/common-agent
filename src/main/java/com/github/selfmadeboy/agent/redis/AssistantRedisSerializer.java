@@ -1,12 +1,12 @@
 package com.github.selfmadeboy.agent.redis;
 
-public  class AssistantRedisSerializer implements org.springframework.data.redis.serializer.RedisSerializer {
+public class AssistantRedisSerializer implements org.springframework.data.redis.serializer.RedisSerializer {
 
     private org.springframework.data.redis.serializer.RedisSerializer serializer;
 
     private String prefix;
 
-    public static AssistantRedisSerializer instance(org.springframework.data.redis.serializer.RedisSerializer serializer, String prefix){
+    public  static AssistantRedisSerializer instance(org.springframework.data.redis.serializer.RedisSerializer serializer, String prefix){
         return new AssistantRedisSerializer(serializer,prefix);
     }
 

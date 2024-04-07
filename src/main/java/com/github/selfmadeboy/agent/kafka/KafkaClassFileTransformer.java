@@ -6,16 +6,15 @@ import javassist.CannotCompileException;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.NotFoundException;
-import lombok.extern.slf4j.Slf4j;
+import org.tinylog.Logger;
+
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
 import java.util.Optional;
 
-@Slf4j
 public class KafkaClassFileTransformer implements ClassFileTransformer {
-
 
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
@@ -43,7 +42,7 @@ public class KafkaClassFileTransformer implements ClassFileTransformer {
 
 
         } catch (Exception e) {
-            log.error("agent transform failed: ", e);
+            Logger.error(e,"agent transform failed: ");
         }
 
         return classfileBuffer;
@@ -61,7 +60,7 @@ public class KafkaClassFileTransformer implements ClassFileTransformer {
         try {
             CtMethod method = ctClass.getMethod(Constants.PRODUCER_METHOD_NAME, Constants.PRODUCER_METHOD_SIGNATURE_1);
             if (!method.isEmpty()){
-                log.info("agent enhance class {}#{}{}", ctClass.getName(), Constants.PRODUCER_METHOD_NAME, Constants.PRODUCER_METHOD_SIGNATURE_1);
+                Logger.info("agent enhance class {}#{}{}", ctClass.getName(), Constants.PRODUCER_METHOD_NAME, Constants.PRODUCER_METHOD_SIGNATURE_1);
                 method.insertBefore(
                         String.format("if($1.headers().lastHeader(\"%s\") == null){$1.headers().add(\"%s\",\"%s\".getBytes(java.nio.charset.StandardCharsets.UTF_8));}",headerKey,headerKey,env)
                 );
@@ -73,7 +72,7 @@ public class KafkaClassFileTransformer implements ClassFileTransformer {
         try {
             CtMethod method = ctClass.getMethod(Constants.PRODUCER_METHOD_NAME, Constants.PRODUCER_METHOD_SIGNATURE_2);
             if (!method.isEmpty()){
-                log.info("agent enhance class {}#{}{}", ctClass.getName(), Constants.PRODUCER_METHOD_NAME, Constants.PRODUCER_METHOD_SIGNATURE_2);
+                Logger.info("agent enhance class {}#{}{}", ctClass.getName(), Constants.PRODUCER_METHOD_NAME, Constants.PRODUCER_METHOD_SIGNATURE_2);
                 method.insertBefore(
                         String.format("if($1.headers().lastHeader(\"%s\") == null){$1.headers().add(\"%s\",\"%s\".getBytes(java.nio.charset.StandardCharsets.UTF_8));}",headerKey,headerKey,env)
                 );
@@ -95,7 +94,7 @@ public class KafkaClassFileTransformer implements ClassFileTransformer {
         try {
             CtMethod method = messageListenerClass.getMethod(Constants.MESSAGE_LISTENER_METHOD_NAME, Constants.MESSAGE_LISTENER_METHOD_SIGNATURE_1);
             if (!method.isEmpty()) {
-                log.info("agent enhance class {}#{}{}", messageListenerClass.getName(), Constants.MESSAGE_LISTENER_METHOD_NAME, Constants.MESSAGE_LISTENER_METHOD_SIGNATURE_1);
+                Logger.info("agent enhance class {}#{}{}", messageListenerClass.getName(), Constants.MESSAGE_LISTENER_METHOD_NAME, Constants.MESSAGE_LISTENER_METHOD_SIGNATURE_1);
                 method.insertBefore(
                         "if (com.github.selfmadeboy.agent.kafka.Assistant.filter($1,null,null) == null){return;}"
                 );
@@ -108,7 +107,7 @@ public class KafkaClassFileTransformer implements ClassFileTransformer {
         try {
             CtMethod method = messageListenerClass.getMethod(Constants.MESSAGE_LISTENER_METHOD_NAME, Constants.MESSAGE_LISTENER_METHOD_SIGNATURE_2);
             if (!method.isEmpty()) {
-                log.info("agent enhance class {}#{}{}", messageListenerClass.getName(), Constants.MESSAGE_LISTENER_METHOD_NAME, Constants.MESSAGE_LISTENER_METHOD_SIGNATURE_2);
+                Logger.info("agent enhance class {}#{}{}", messageListenerClass.getName(), Constants.MESSAGE_LISTENER_METHOD_NAME, Constants.MESSAGE_LISTENER_METHOD_SIGNATURE_2);
 
                 method.insertBefore(
                         "if (com.github.selfmadeboy.agent.kafka.Assistant.filter($1,$2,null) == null){return;}"
@@ -121,7 +120,7 @@ public class KafkaClassFileTransformer implements ClassFileTransformer {
         try {
             CtMethod method = messageListenerClass.getMethod(Constants.MESSAGE_LISTENER_METHOD_NAME, Constants.MESSAGE_LISTENER_METHOD_SIGNATURE_3);
             if (!method.isEmpty()) {
-                log.info("agent enhance class {}#{}{}", messageListenerClass.getName(), Constants.MESSAGE_LISTENER_METHOD_NAME, Constants.MESSAGE_LISTENER_METHOD_SIGNATURE_3);
+                Logger.info("agent enhance class {}#{}{}", messageListenerClass.getName(), Constants.MESSAGE_LISTENER_METHOD_NAME, Constants.MESSAGE_LISTENER_METHOD_SIGNATURE_3);
                 method.insertBefore(
                         "if (com.github.selfmadeboy.agent.kafka.Assistant.filter($1,null,$2) == null){return;}"
                 );
@@ -133,7 +132,7 @@ public class KafkaClassFileTransformer implements ClassFileTransformer {
         try {
             CtMethod method = messageListenerClass.getMethod(Constants.MESSAGE_LISTENER_METHOD_NAME, Constants.MESSAGE_LISTENER_METHOD_SIGNATURE_4);
             if (!method.isEmpty()) {
-                log.info("agent enhance class {}#{}{}", messageListenerClass.getName(), Constants.MESSAGE_LISTENER_METHOD_NAME, Constants.MESSAGE_LISTENER_METHOD_SIGNATURE_4);
+                Logger.info("agent enhance class {}#{}{}", messageListenerClass.getName(), Constants.MESSAGE_LISTENER_METHOD_NAME, Constants.MESSAGE_LISTENER_METHOD_SIGNATURE_4);
 
                 method.insertBefore(
                         "if (com.github.selfmadeboy.agent.kafka.Assistant.filter($1,$2,$3) == null){return;}"
@@ -156,7 +155,7 @@ public class KafkaClassFileTransformer implements ClassFileTransformer {
         try {
             CtMethod method = batchMessageListenerClass.getMethod(Constants.MESSAGE_LISTENER_METHOD_NAME, Constants.BATCH_MESSAGE_LISTENER_METHOD_SIGNATURE_1);
             if (!method.isEmpty()) {
-                log.info("agent enhance class {}#{}{}", batchMessageListenerClass.getName(), Constants.MESSAGE_LISTENER_METHOD_NAME, Constants.BATCH_MESSAGE_LISTENER_METHOD_SIGNATURE_1);
+                Logger.info("agent enhance class {}#{}{}", batchMessageListenerClass.getName(), Constants.MESSAGE_LISTENER_METHOD_NAME, Constants.BATCH_MESSAGE_LISTENER_METHOD_SIGNATURE_1);
 
                 method.insertBefore(
                         "if (com.github.selfmadeboy.agent.kafka.Assistant.filterList($1,null,null).isEmpty()){return;}"
@@ -169,7 +168,7 @@ public class KafkaClassFileTransformer implements ClassFileTransformer {
         try {
             CtMethod method = batchMessageListenerClass.getMethod(Constants.MESSAGE_LISTENER_METHOD_NAME, Constants.BATCH_MESSAGE_LISTENER_METHOD_SIGNATURE_2);
             if (!method.isEmpty()) {
-                log.info("agent enhance class {}#{}{}", batchMessageListenerClass.getName(), Constants.MESSAGE_LISTENER_METHOD_NAME, Constants.BATCH_MESSAGE_LISTENER_METHOD_SIGNATURE_2);
+                Logger.info("agent enhance class {}#{}{}", batchMessageListenerClass.getName(), Constants.MESSAGE_LISTENER_METHOD_NAME, Constants.BATCH_MESSAGE_LISTENER_METHOD_SIGNATURE_2);
 
                 method.insertBefore(
                         "if (com.github.selfmadeboy.agent.kafka.Assistant.filterList($1,$2,null).isEmpty()){return;}"
@@ -182,7 +181,7 @@ public class KafkaClassFileTransformer implements ClassFileTransformer {
         try {
             CtMethod method = batchMessageListenerClass.getMethod(Constants.MESSAGE_LISTENER_METHOD_NAME, Constants.BATCH_MESSAGE_LISTENER_METHOD_SIGNATURE_3);
             if (!method.isEmpty()) {
-                log.info("agent enhance class {}#{}{}", batchMessageListenerClass.getName(), Constants.MESSAGE_LISTENER_METHOD_NAME, Constants.BATCH_MESSAGE_LISTENER_METHOD_SIGNATURE_3);
+                Logger.info("agent enhance class {}#{}{}", batchMessageListenerClass.getName(), Constants.MESSAGE_LISTENER_METHOD_NAME, Constants.BATCH_MESSAGE_LISTENER_METHOD_SIGNATURE_3);
 
                 method.insertBefore(
                         "if (com.github.selfmadeboy.agent.kafka.Assistant.filterList($1,null,$2).isEmpty()){return;}"
@@ -195,7 +194,7 @@ public class KafkaClassFileTransformer implements ClassFileTransformer {
         try {
             CtMethod method = batchMessageListenerClass.getMethod(Constants.MESSAGE_LISTENER_METHOD_NAME, Constants.BATCH_MESSAGE_LISTENER_METHOD_SIGNATURE_4);
             if (!method.isEmpty()) {
-                log.info("agent enhance class {}#{}{}", batchMessageListenerClass.getName(), Constants.MESSAGE_LISTENER_METHOD_NAME, Constants.BATCH_MESSAGE_LISTENER_METHOD_SIGNATURE_4);
+                Logger.info("agent enhance class {}#{}{}", batchMessageListenerClass.getName(), Constants.MESSAGE_LISTENER_METHOD_NAME, Constants.BATCH_MESSAGE_LISTENER_METHOD_SIGNATURE_4);
 
                 method.insertBefore(
                         "if (com.github.selfmadeboy.agent.kafka.Assistant.filterList($1,$2,$3).isEmpty()){return;}"
@@ -208,7 +207,7 @@ public class KafkaClassFileTransformer implements ClassFileTransformer {
         try {
             CtMethod method = batchMessageListenerClass.getMethod(Constants.MESSAGE_LISTENER_METHOD_NAME, Constants.BATCH_MESSAGE_LISTENER_METHOD_SIGNATURE_5);
             if (!method.isEmpty()) {
-                log.info("agent enhance class {}#{}{}", batchMessageListenerClass.getName(), Constants.MESSAGE_LISTENER_METHOD_NAME, Constants.BATCH_MESSAGE_LISTENER_METHOD_SIGNATURE_5);
+                Logger.info("agent enhance class {}#{}{}", batchMessageListenerClass.getName(), Constants.MESSAGE_LISTENER_METHOD_NAME, Constants.BATCH_MESSAGE_LISTENER_METHOD_SIGNATURE_5);
 
                 method.insertBefore(
                         "if (com.github.selfmadeboy.agent.kafka.Assistant.filterRecords($1,$2,$3) == null){return;}"
