@@ -1,12 +1,9 @@
 package com.github.selfmadeboy.agent.kafka;
 
-
-import com.github.selfmadeboy.agent.TransformUtils;
-import javassist.CannotCompileException;
-import javassist.CtClass;
-import javassist.CtMethod;
-import javassist.NotFoundException;
 import org.tinylog.Logger;
+import com.github.selfmadeboy.agent.TransformUtils;
+
+import javassist.*;
 
 
 import java.lang.instrument.ClassFileTransformer;
@@ -16,9 +13,13 @@ import java.util.Optional;
 
 public class KafkaClassFileTransformer implements ClassFileTransformer {
 
+
+
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
+        TransformUtils.addClassLoader(loader);
         if (!TransformUtils.hasConfigByKey(Constants.KAFKA_ENV_KEY_NAME)){
+            Logger.info("agent skip KafkaClassFileTransformer due not config {}", Constants.KAFKA_ENV_KEY_NAME);
             return classfileBuffer;
         }
         try {

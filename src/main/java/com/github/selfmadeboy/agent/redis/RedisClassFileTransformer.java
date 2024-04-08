@@ -2,11 +2,9 @@ package com.github.selfmadeboy.agent.redis;
 
 
 import com.github.selfmadeboy.agent.TransformUtils;
-import javassist.CannotCompileException;
-import javassist.CtClass;
-import javassist.CtMethod;
-import javassist.NotFoundException;
+
 import org.tinylog.Logger;
+import javassist.*;
 
 
 import java.lang.instrument.ClassFileTransformer;
@@ -19,9 +17,10 @@ import java.util.Optional;
 
 public class RedisClassFileTransformer implements ClassFileTransformer {
 
-
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
+        TransformUtils.addClassLoader(loader);
+
         if (!TransformUtils.hasConfigByKey(Constants.REDIS_ENV_KEY_NAME)) {
             return classfileBuffer;
         }

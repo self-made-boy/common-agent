@@ -1,13 +1,38 @@
 package com.github.selfmadeboy.agent;
 
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.NotFoundException;
+import javassist.*;
+import org.tinylog.Logger;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 
 public class TransformUtils {
+
+
+    private static AtomicBoolean addLaunchedUrlClassLoader = new AtomicBoolean(false);
+
+    public static void addClassLoader(ClassLoader classLoader) {
+
+        if (Constants.Launched_URL_ClassLoader_ClassName.equals(classLoader.getClass().getName())){
+            boolean b = addLaunchedUrlClassLoader.compareAndSet(false, true);
+            if (b){
+                ClassPool.getDefault().appendClassPath(new LoaderClassPath(classLoader));
+                Logger.info("agent ClassPool add LaunchedUrlClassLoader");
+
+                try {
+                    CtClass ctClass = ClassPool.getDefault().get("com.github.selfmadeboy.agent.redis.AssistantRedisSerializer");
+                    ctClass.toClass(classLoader,null);
+                    CtClass ctClass1 = ClassPool.getDefault().get("com.github.selfmadeboy.agent.kafka.Assistant");
+                    ctClass1.toClass(classLoader,null);
+                } catch (Exception e) {
+
+                }
+            }
+        }
+
+    }
 
     public static boolean instance(CtClass target, CtClass parent) {
         if (target == null || parent == null) {
@@ -68,13 +93,16 @@ public class TransformUtils {
     }
 
 
-    public static Optional<CtClass> getTargetClass(String className, String targetClassName) {
+    public static Optional<CtClass> getTargetClass(ClassPool pool, String className, String targetClassName) {
         boolean isSystemClass = TransformUtils.isSystemClass(className);
         if (isSystemClass) {
             return Optional.empty();
         }
 
-        ClassPool pool = ClassPool.getDefault();
+        if (pool == null) {
+            pool = ClassPool.getDefault();
+        }
+
         try {
             String fullQualifiedClassName = className.replaceAll(Constants.SLASH, Constants.DOT);
             CtClass ctClass = pool.get(fullQualifiedClassName);
@@ -86,6 +114,11 @@ public class TransformUtils {
         } catch (NotFoundException e) {
             return Optional.empty();
         }
+    }
+
+    public static Optional<CtClass> getTargetClass(String className, String targetClassName) {
+        return getTargetClass(null, className, targetClassName);
+
     }
 
 

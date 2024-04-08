@@ -4,15 +4,13 @@ import com.github.selfmadeboy.agent.TransformUtils;
 import org.tinylog.Logger;
 
 
+
 public class Assistant {
-
-
-
     public static <K, V> org.apache.kafka.clients.consumer.ConsumerRecord<K, V> filter(org.apache.kafka.clients.consumer.ConsumerRecord<K, V> record,
                                                                                        org.springframework.kafka.support.Acknowledgment ack,
                                                                                        org.apache.kafka.clients.consumer.Consumer<K, V> consumer) {
 
-        org.apache.kafka.common.header.Header _header = record.headers().lastHeader(Constants.KAFKA_HEADER_KEY_NAME);
+        org.apache.kafka.common.header.Header _header = record.headers().lastHeader(getHeaderKeyName());
         if (_header == null && !hasEnv()) {
             return record;
         }
@@ -42,7 +40,7 @@ public class Assistant {
         for (int i = 0; i < records.size(); i++) {
             org.apache.kafka.clients.consumer.ConsumerRecord<K, V> _record = records.get(i);
 
-            org.apache.kafka.common.header.Header _header = _record.headers().lastHeader(Constants.KAFKA_HEADER_KEY_NAME);
+            org.apache.kafka.common.header.Header _header = _record.headers().lastHeader(getHeaderKeyName());
             if (_header == null && !hasEnv()) {
                 ret.add(_record);
             }
@@ -126,6 +124,10 @@ public class Assistant {
 
     public static String getEnv() {
         return TransformUtils.getConfigByKey(Constants.KAFKA_ENV_KEY_NAME);
+    }
+
+    public static String getHeaderKeyName() {
+        return TransformUtils.getConfigByKey(Constants.KAFKA_HEADER_KEY_NAME);
     }
 
 
