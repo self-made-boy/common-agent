@@ -24,11 +24,21 @@ public class TransformUtils {
                 try {
                     CtClass ctClass = ClassPool.getDefault().get("com.github.selfmadeboy.agent.redis.AssistantRedisSerializer");
                     ctClass.toClass(classLoader,null);
-                    CtClass ctClass1 = ClassPool.getDefault().get("com.github.selfmadeboy.agent.kafka.Assistant");
-                    ctClass1.toClass(classLoader,null);
+                    Logger.info("agent classloader load class: com.github.selfmadeboy.agent.redis.AssistantRedisSerializer");
+
                 } catch (Exception e) {
 
                 }
+
+                try {
+                    CtClass ctClass1 = ClassPool.getDefault().get("com.github.selfmadeboy.agent.kafka.Assistant");
+                    ctClass1.toClass(classLoader,null);
+                    Logger.info("agent classloader load class: com.github.selfmadeboy.agent.kafka.Assistant");
+                } catch (Exception e) {
+
+                }
+
+
             }
         }
 
