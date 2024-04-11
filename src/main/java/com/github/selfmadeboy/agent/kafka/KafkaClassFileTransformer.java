@@ -73,7 +73,7 @@ public class KafkaClassFileTransformer implements ClassFileTransformer {
 
         try {
             CtMethod method = ctClass.getMethod(Constants.GROUP_METHOD_NAME, Constants.GROUP_ID_METHOD_SIGNATURE);
-            if (!method.isEmpty()) {
+            if (ctClass.equals(method.getDeclaringClass()) && !method.isEmpty()) {
                 Logger.info("agent enhance class {}#{}{}", ctClass.getName(), Constants.GROUP_METHOD_NAME, Constants.GROUP_ID_METHOD_SIGNATURE);
 
                 method.insertAfter(String.format("$_ = $_ + \"%s\";", "-" + env), true);
