@@ -11,7 +11,7 @@ public class Assistant {
                                                                                        org.apache.kafka.clients.consumer.Consumer<K, V> consumer) {
 
         org.apache.kafka.common.header.Header _header = record.headers().lastHeader(getHeaderKeyName());
-        if (_header == null && !hasEnv()) {
+        if (_header == null && !isNotDefault()) {
             return record;
         }
 
@@ -41,7 +41,7 @@ public class Assistant {
             org.apache.kafka.clients.consumer.ConsumerRecord<K, V> _record = records.get(i);
 
             org.apache.kafka.common.header.Header _header = _record.headers().lastHeader(getHeaderKeyName());
-            if (_header == null && !hasEnv()) {
+            if (_header == null && !isNotDefault()) {
                 ret.add(_record);
             }
 
@@ -118,16 +118,29 @@ public class Assistant {
     }
 
 
-    public static boolean hasEnv() {
-        return TransformUtils.hasConfigByKey(Constants.KAFKA_ENV_KEY_NAME);
+    public static boolean isNotDefault() {
+        return !"default".equalsIgnoreCase(getEnv());
     }
 
+    private static String env = null;
     public static String getEnv() {
-        return TransformUtils.getConfigByKey(Constants.KAFKA_ENV_KEY_NAME);
+        if (env!=null){
+            return env;
+        }else {
+            env =  TransformUtils.getConfigByKey(Constants.KAFKA_ENV_KEY_NAME);
+            return env;
+        }
+
     }
 
+    private static String headerKey = null;
     public static String getHeaderKeyName() {
-        return TransformUtils.getConfigByKey(Constants.KAFKA_HEADER_KEY_NAME);
+        if (headerKey!=null){
+            return headerKey;
+        }else {
+            headerKey =  TransformUtils.getConfigByKey(Constants.KAFKA_HEADER_KEY_NAME);
+            return headerKey;
+        }
     }
 
 

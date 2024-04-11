@@ -25,4 +25,10 @@ class Constants {
     static final String PRODUCER_METHOD_NAME = "send";
     static final String PRODUCER_METHOD_SIGNATURE_1 = "(Lorg/apache/kafka/clients/producer/ProducerRecord;)Ljava/util/concurrent/Future;";
     static final String PRODUCER_METHOD_SIGNATURE_2 = "(Lorg/apache/kafka/clients/producer/ProducerRecord;Lorg/apache/kafka/clients/producer/Callback;)Ljava/util/concurrent/Future;";
+
+
+    static final String GROUP_QUALIFIED_NAME = "org.springframework.kafka.listener.AbstractMessageListenerContainer";
+    static final String GROUP_METHOD_NAME = "getGroupId";
+    static final String GROUP_ID_METHOD_SIGNATURE = "()Ljava/lang/String;";
+
 }

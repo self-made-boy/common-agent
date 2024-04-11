@@ -49,4 +49,17 @@ public class KafkaClassFileTransformerTest {
 
         ctClass.writeFile("BatchMessageListener.class");
     }
+
+    @Test
+    public void testTransformGroup() throws CannotCompileException, IOException {
+
+        Optional<CtClass> optional = TransformUtils.getTargetClass(Constants.GROUP_QUALIFIED_NAME, Constants.GROUP_QUALIFIED_NAME);
+        if (!optional.isPresent()) {
+            return;
+        }
+
+        CtClass ctClass = transformer.transformGroup(optional.get());
+
+        ctClass.writeFile("Group.class");
+    }
 }

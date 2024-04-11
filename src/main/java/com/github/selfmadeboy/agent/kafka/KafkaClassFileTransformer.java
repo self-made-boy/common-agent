@@ -40,6 +40,11 @@ public class KafkaClassFileTransformer implements ClassFileTransformer {
                 return transformProducer(optional.get()).toBytecode();
             }
 
+            optional = TransformUtils.getTargetClass(className, Constants.GROUP_QUALIFIED_NAME);
+
+            if (optional.isPresent()) {
+                return transformGroup(optional.get()).toBytecode();
+            }
 
 
         } catch (Exception e) {
@@ -49,15 +54,54 @@ public class KafkaClassFileTransformer implements ClassFileTransformer {
         return classfileBuffer;
     }
 
-    public CtClass transformProducer(CtClass ctClass) throws CannotCompileException {
+    private boolean isDefault() {
+        return "default".equalsIgnoreCase(TransformUtils.getConfigByKey(Constants.KAFKA_ENV_KEY_NAME));
+    }
+
+    public CtClass transformGroup(CtClass ctClass) throws CannotCompileException {
         boolean hasEnv = TransformUtils.hasConfigByKey(Constants.KAFKA_ENV_KEY_NAME);
 
         if (!hasEnv) {
             return ctClass;
         }
 
+        if (isDefault()) {
+            return ctClass;
+        }
+
+        String env = TransformUtils.getConfigByKey(Constants.KAFKA_ENV_KEY_NAME);
+
+        try {
+            CtMethod method = ctClass.getMethod(Constants.GROUP_METHOD_NAME, Constants.GROUP_ID_METHOD_SIGNATURE);
+            if (!method.isEmpty()) {
+                Logger.info("agent enhance class {}#{}{}", ctClass.getName(), Constants.GROUP_METHOD_NAME, Constants.GROUP_ID_METHOD_SIGNATURE);
+
+                method.insertAfter(String.format("$_ = $_ + \"%s\";", "-" + env), true);
+            }
+        } catch (NotFoundException e) {
+
+        }
+
+
+        return ctClass;
+    }
+    public CtClass transformProducer(CtClass ctClass) throws CannotCompileException {
+        boolean hasEnv = TransformUtils.hasConfigByKey(Constants.KAFKA_ENV_KEY_NAME);
+
+        if (!hasEnv) {
+            return ctClass;
+        }
+        if (isDefault()) {
+            return ctClass;
+        }
+
+
         String env = TransformUtils.getConfigByKey(Constants.KAFKA_ENV_KEY_NAME);
         String headerKey = TransformUtils.getConfigByKey(Constants.KAFKA_HEADER_KEY_NAME);
+        if (headerKey == null || headerKey.isEmpty()) {
+            return ctClass;
+        }
+
         try {
             CtMethod method = ctClass.getMethod(Constants.PRODUCER_METHOD_NAME, Constants.PRODUCER_METHOD_SIGNATURE_1);
             if (!method.isEmpty()){
