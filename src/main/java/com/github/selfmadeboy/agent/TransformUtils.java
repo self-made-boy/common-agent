@@ -78,6 +78,7 @@ public class TransformUtils {
                 CtClass ctClass = ClassPool.getDefault().get(clazzName);
                 ctClass.toClass(classLoader, null);
                 Logger.info("agent classloader load class: " + clazzName);
+                classes.add(clazzName);
 
             } catch (Exception e) {
                 Logger.error(e, "agent classloader load class failed: "+ clazzName);
