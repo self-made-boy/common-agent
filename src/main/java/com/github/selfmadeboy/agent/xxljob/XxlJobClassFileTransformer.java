@@ -18,7 +18,7 @@ public class XxlJobClassFileTransformer implements ClassFileTransformer {
 
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
-        TransformUtils.addClassLoader(loader);
+//        TransformUtils.addClassLoader(loader);
 
         String configEnv = TransformUtils.getConfigByKey(Constants.XXLJOB_ENV_KEY_NAME);
         if (  configEnv == null || configEnv.isEmpty()){
@@ -34,6 +34,7 @@ public class XxlJobClassFileTransformer implements ClassFileTransformer {
                     method.insertBefore(String.format("if ($1!=null && !$1.isEmpty()){$1=$1 + \"-%s\";}",configEnv));
                     Logger.info("agent enhance {}#{}{}", Constants.CLASS_NAME, Constants.METHOD_NAME, Constants.METHOD_SIGNATURE);
                 }
+                TransformUtils.addClassLoader(loader, null);
                 return ctClass.toBytecode();
             } catch (NotFoundException e) {
                 Logger.warn("agent not found target method: {}#{}{}", Constants.CLASS_NAME, Constants.METHOD_NAME, Constants.METHOD_SIGNATURE);

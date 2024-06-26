@@ -13,25 +13,32 @@ import java.util.Optional;
 
 public class KafkaClassFileTransformer implements ClassFileTransformer {
 
-
-
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
-        TransformUtils.addClassLoader(loader);
+//        TransformUtils.addClassLoader(loader);
         if (!TransformUtils.hasConfigByKey(Constants.KAFKA_ENV_KEY_NAME)){
             Logger.info("agent skip KafkaClassFileTransformer due not config {}", Constants.KAFKA_ENV_KEY_NAME);
             return classfileBuffer;
         }
+        byte[] ret = transformInner(loader, className, classBeingRedefined, protectionDomain, classfileBuffer);
+        TransformUtils.addClassLoader(loader, Assistant.class);
+
+        return ret;
+    }
+
+
+    public byte[] transformInner(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
+
         try {
             Optional<CtClass> optional = TransformUtils.getTargetClass(className, Constants.MESSAGE_LISTENER_QUALIFIED_NAME);
             if (optional.isPresent()) {
-                return transformMessageListener(optional.get()).toBytecode();
+                return transformMessageListener(loader, optional.get()).toBytecode();
             }
 
             optional = TransformUtils.getTargetClass(className, Constants.BATCH_MESSAGE_LISTENER_QUALIFIED_NAME);
 
             if (optional.isPresent()) {
-                return transformBatchMessageListener(optional.get()).toBytecode();
+                return transformBatchMessageListener(loader, optional.get()).toBytecode();
             }
 
             optional = TransformUtils.getTargetClass(className, Constants.PRODUCER_QUALIFIED_NAME);
@@ -129,6 +136,10 @@ public class KafkaClassFileTransformer implements ClassFileTransformer {
     }
 
     public CtClass transformMessageListener(CtClass messageListenerClass) throws CannotCompileException {
+        return transformMessageListener(null, messageListenerClass);
+    }
+
+    public CtClass transformMessageListener(ClassLoader loader, CtClass messageListenerClass) throws CannotCompileException {
 
         boolean hasEnv = TransformUtils.hasConfigByKey(Constants.KAFKA_ENV_KEY_NAME);
 
@@ -186,10 +197,17 @@ public class KafkaClassFileTransformer implements ClassFileTransformer {
         } catch (NotFoundException e) {
             // do nothing
         }
+        if (loader != null) {
+            TransformUtils.addClassLoader(loader, Assistant.class);
+        }
         return messageListenerClass;
     }
 
     public CtClass transformBatchMessageListener(CtClass batchMessageListenerClass) throws CannotCompileException {
+        return transformBatchMessageListener(null, batchMessageListenerClass);
+    }
+
+    public CtClass transformBatchMessageListener(ClassLoader loader, CtClass batchMessageListenerClass) throws CannotCompileException {
 
         boolean hasEnv = TransformUtils.hasConfigByKey(Constants.KAFKA_ENV_KEY_NAME);
 
@@ -260,6 +278,10 @@ public class KafkaClassFileTransformer implements ClassFileTransformer {
             }
         } catch (NotFoundException e) {
             // do nothing
+        }
+
+        if (loader != null) {
+            TransformUtils.addClassLoader(loader, Assistant.class);
         }
 
         return batchMessageListenerClass;

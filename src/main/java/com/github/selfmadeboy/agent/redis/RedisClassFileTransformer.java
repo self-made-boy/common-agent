@@ -19,7 +19,7 @@ public class RedisClassFileTransformer implements ClassFileTransformer {
 
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
-        TransformUtils.addClassLoader(loader);
+//        TransformUtils.addClassLoader(loader);
 
         if (!TransformUtils.hasConfigByKey(Constants.REDIS_ENV_KEY_NAME)) {
             return classfileBuffer;
@@ -66,6 +66,10 @@ public class RedisClassFileTransformer implements ClassFileTransformer {
     }
 
     public CtClass transformRedisTemplate(CtClass ctClass) throws CannotCompileException {
+        return transformRedisTemplate(null, ctClass);
+    }
+
+    public CtClass transformRedisTemplate(ClassLoader loader, CtClass ctClass) throws CannotCompileException {
 
         String config = TransformUtils.getConfigByKey(Constants.REDIS_ENV_KEY_NAME);
         try {
@@ -89,11 +93,15 @@ public class RedisClassFileTransformer implements ClassFileTransformer {
                 method.insertAfter(String.format("try {Class aClass = Class.forName(\"%s\");if (!aClass.isInstance(this.keySerializer)){this.keySerializer = com.github.selfmadeboy.agent.redis.AssistantRedisSerializer.instance(this.keySerializer,\"%s\");}} catch (Exception e) {throw new RuntimeException(e);}",Constants.ASSIST_CLASS_NAME, config));
 
                 Logger.info("agent enhance class:{}#{}{}", ctClass.getName(), Constants.AFTER_PROPERTIES_SET_METHOD_NAME, Constants.AFTER_PROPERTIES_SET_METHOD_SIGNATURE);
+
             }
         } catch (NotFoundException e) {
             Logger.warn("agent redis not found:{}#{}{}", ctClass.getName(), Constants.AFTER_PROPERTIES_SET_METHOD_NAME, Constants.AFTER_PROPERTIES_SET_METHOD_SIGNATURE);
         }
 
+        if (loader != null) {
+            TransformUtils.addClassLoader(loader, AssistantRedisSerializer.class);
+        }
 
         return ctClass;
     }
