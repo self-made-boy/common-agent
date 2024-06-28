@@ -3,7 +3,6 @@ package com.github.selfmadeboy.agent;
 import javassist.*;
 import org.tinylog.Logger;
 
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -17,42 +16,40 @@ public class TransformUtils {
     private static AtomicBoolean addLaunchedUrlClassLoader = new AtomicBoolean(false);
     private static Set<String> classes = new ConcurrentSkipListSet<>();
 
-    @Deprecated
-    public static void addClassLoader(ClassLoader classLoader) {
+//    @Deprecated
+//    public static void addClassLoader(ClassLoader classLoader) {
+//
+//        if (Constants.Launched_URL_ClassLoader_ClassName.equals(classLoader.getClass().getName())){
+//            boolean b = addLaunchedUrlClassLoader.compareAndSet(false, true);
+//            if (b){
+//                ClassPool.getDefault().appendClassPath(new LoaderClassPath(classLoader));
+//                Logger.info("agent ClassPool add LaunchedUrlClassLoader");
+//
+//                try {
+//                    CtClass ctClass = ClassPool.getDefault().get("com.github.selfmadeboy.agent.redis.AssistantRedisSerializer");
+//                    ctClass.toClass(classLoader,null);
+//                    Logger.info("agent classloader load class: com.github.selfmadeboy.agent.redis.AssistantRedisSerializer");
+//
+//                } catch (Exception e) {
+//                    Logger.error(e, "agent classloader load class failed: com.github.selfmadeboy.agent.redis.AssistantRedisSerializer");
+//                }
+//
+//                try {
+//                    CtClass ctClass1 = ClassPool.getDefault().get("com.github.selfmadeboy.agent.kafka.Assistant");
+//                    ctClass1.toClass(classLoader,null);
+//                    Logger.info("agent classloader load class: com.github.selfmadeboy.agent.kafka.Assistant");
+//                } catch (Exception e) {
+//                    Logger.error(e, "agent classloader load class failed: com.github.selfmadeboy.agent.kafka.Assistant");
+//
+//                }
+//
+//
+//            }
+//        }
+//
+//    }
 
-        if (Constants.Launched_URL_ClassLoader_ClassName.equals(classLoader.getClass().getName())){
-            boolean b = addLaunchedUrlClassLoader.compareAndSet(false, true);
-            if (b){
-                ClassPool.getDefault().appendClassPath(new LoaderClassPath(classLoader));
-                Logger.info("agent ClassPool add LaunchedUrlClassLoader");
-
-                try {
-                    CtClass ctClass = ClassPool.getDefault().get("com.github.selfmadeboy.agent.redis.AssistantRedisSerializer");
-                    ctClass.toClass(classLoader,null);
-                    Logger.info("agent classloader load class: com.github.selfmadeboy.agent.redis.AssistantRedisSerializer");
-
-                } catch (Exception e) {
-                    Logger.error(e, "agent classloader load class failed: com.github.selfmadeboy.agent.redis.AssistantRedisSerializer");
-                }
-
-                try {
-                    CtClass ctClass1 = ClassPool.getDefault().get("com.github.selfmadeboy.agent.kafka.Assistant");
-                    ctClass1.toClass(classLoader,null);
-                    Logger.info("agent classloader load class: com.github.selfmadeboy.agent.kafka.Assistant");
-                } catch (Exception e) {
-                    Logger.error(e, "agent classloader load class failed: com.github.selfmadeboy.agent.kafka.Assistant");
-
-                }
-
-
-            }
-        }
-
-    }
-
-
-    public synchronized static void addClassLoader(ClassLoader classLoader, Class clazz) {
-
+    public synchronized static void addClass2ClassLoader(ClassLoader classLoader, String clazzName) {
         if (!Constants.Launched_URL_ClassLoader_ClassName.equals(classLoader.getClass().getName())) {
             return;
         }
@@ -68,11 +65,10 @@ public class TransformUtils {
             }
         }
 
-
-        if (clazz == null) {
+        if (clazzName == null) {
             return;
         }
-        String clazzName = clazz.getName();
+
         if (!classes.contains(clazzName)) {
             try {
                 CtClass ctClass = ClassPool.getDefault().get(clazzName);
@@ -85,8 +81,43 @@ public class TransformUtils {
             }
         }
 
-
     }
+//    public synchronized static void addClassLoader(ClassLoader classLoader, Class clazz) {
+//
+//        if (!Constants.Launched_URL_ClassLoader_ClassName.equals(classLoader.getClass().getName())) {
+//            return;
+//        }
+//
+//        boolean added = addLaunchedUrlClassLoader.get();
+//        if (!added) {
+//            try {
+//                ClassPool.getDefault().appendClassPath(new LoaderClassPath(classLoader));
+//                Logger.info("agent ClassPool add LaunchedUrlClassLoader");
+//                addLaunchedUrlClassLoader.compareAndSet(false, true);
+//            } catch (Exception e) {
+//                Logger.error(e,"agent ClassPool add LaunchedUrlClassLoader failed");
+//            }
+//        }
+//
+//
+//        if (clazz == null) {
+//            return;
+//        }
+//        String clazzName = clazz.getName();
+//        if (!classes.contains(clazzName)) {
+//            try {
+//                CtClass ctClass = ClassPool.getDefault().get(clazzName);
+//                ctClass.toClass(classLoader, null);
+//                Logger.info("agent classloader load class: " + clazzName);
+//                classes.add(clazzName);
+//
+//            } catch (Exception e) {
+//                Logger.error(e, "agent classloader load class failed: "+ clazzName);
+//            }
+//        }
+//
+//
+//    }
 
 
 

@@ -15,14 +15,12 @@ public class KafkaClassFileTransformer implements ClassFileTransformer {
 
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
-//        TransformUtils.addClassLoader(loader);
+        TransformUtils.addClass2ClassLoader(loader,null);
         if (!TransformUtils.hasConfigByKey(Constants.KAFKA_ENV_KEY_NAME)){
-            Logger.info("agent skip KafkaClassFileTransformer due not config {}", Constants.KAFKA_ENV_KEY_NAME);
+//            Logger.info("agent skip KafkaClassFileTransformer due not config {}", Constants.KAFKA_ENV_KEY_NAME);
             return classfileBuffer;
         }
         byte[] ret = transformInner(loader, className, classBeingRedefined, protectionDomain, classfileBuffer);
-        TransformUtils.addClassLoader(loader, Assistant.class);
-
         return ret;
     }
 
@@ -198,7 +196,7 @@ public class KafkaClassFileTransformer implements ClassFileTransformer {
             // do nothing
         }
         if (loader != null) {
-            TransformUtils.addClassLoader(loader, Assistant.class);
+            TransformUtils.addClass2ClassLoader(loader, Constants.ASSISTANT_CLASSNAME);
         }
         return messageListenerClass;
     }
@@ -281,7 +279,7 @@ public class KafkaClassFileTransformer implements ClassFileTransformer {
         }
 
         if (loader != null) {
-            TransformUtils.addClassLoader(loader, Assistant.class);
+            TransformUtils.addClass2ClassLoader(loader, Constants.ASSISTANT_CLASSNAME);
         }
 
         return batchMessageListenerClass;

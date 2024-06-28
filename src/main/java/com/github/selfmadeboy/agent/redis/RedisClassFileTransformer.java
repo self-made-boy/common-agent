@@ -19,8 +19,7 @@ public class RedisClassFileTransformer implements ClassFileTransformer {
 
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
-//        TransformUtils.addClassLoader(loader);
-
+        TransformUtils.addClass2ClassLoader(loader,null);
         if (!TransformUtils.hasConfigByKey(Constants.REDIS_ENV_KEY_NAME)) {
             return classfileBuffer;
         }
@@ -73,14 +72,11 @@ public class RedisClassFileTransformer implements ClassFileTransformer {
 
         String config = TransformUtils.getConfigByKey(Constants.REDIS_ENV_KEY_NAME);
         try {
-            System.out.println();
             CtMethod method = ctClass.getMethod(Constants.SET_KEY_SERIALIZER_METHOD_NAME, Constants.SET_KEY_SERIALIZER_METHOD_SIGNATURE);
             if (Objects.equals(method.getDeclaringClass(), ctClass)) {
                 method.insertBefore(String.format("try {Class aClass = Class.forName(\"%s\");if (!aClass.isInstance($1)){this.keySerializer = com.github.selfmadeboy.agent.redis.AssistantRedisSerializer.instance($1,\"%s\");return;}} catch (Exception e) {throw new RuntimeException(e);}",Constants.ASSIST_CLASS_NAME, config));
                 Logger.info("agent enhance class:{}#{}{}", ctClass.getName(), Constants.SET_KEY_SERIALIZER_METHOD_NAME, Constants.SET_KEY_SERIALIZER_METHOD_SIGNATURE);
             }
-
-            System.out.println();
 
         } catch (NotFoundException e) {
             Logger.warn("agent redis not found:{}#{}{}", ctClass.getName(), Constants.SET_KEY_SERIALIZER_METHOD_NAME, Constants.SET_KEY_SERIALIZER_METHOD_SIGNATURE);
@@ -100,7 +96,7 @@ public class RedisClassFileTransformer implements ClassFileTransformer {
         }
 
         if (loader != null) {
-            TransformUtils.addClassLoader(loader, AssistantRedisSerializer.class);
+            TransformUtils.addClass2ClassLoader(loader, Constants.ASSIST_CLASS_NAME);
         }
 
         return ctClass;

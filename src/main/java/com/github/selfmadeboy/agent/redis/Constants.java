@@ -7,6 +7,7 @@ import java.util.Map;
 
 class Constants {
 
+
     static final  String ASSIST_CLASS_NAME = "com.github.selfmadeboy.agent.redis.AssistantRedisSerializer";
     static final String REDIS_ENV_KEY_NAME = "agent.redis.env.value";
     static final String REDIS_TEMPLATE_CLASS_NAME = "org.springframework.data.redis.core.RedisTemplate";

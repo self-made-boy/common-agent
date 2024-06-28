@@ -31,4 +31,6 @@ class Constants {
     static final String GROUP_METHOD_NAME = "getGroupId";
     static final String GROUP_ID_METHOD_SIGNATURE = "()Ljava/lang/String;";
 
+    static final String ASSISTANT_CLASSNAME = "com.github.selfmadeboy.agent.kafka.Assistant";
+
 }
