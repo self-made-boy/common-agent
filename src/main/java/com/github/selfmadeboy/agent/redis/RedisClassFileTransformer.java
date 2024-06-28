@@ -27,7 +27,7 @@ public class RedisClassFileTransformer implements ClassFileTransformer {
         try {
             Optional<CtClass> optional = TransformUtils.getTargetClass(className, Constants.REDIS_TEMPLATE_CLASS_NAME);
             if (optional.isPresent()) {
-                return transformRedisTemplate(optional.get()).toBytecode();
+                return transformRedisTemplate(loader,optional.get()).toBytecode();
             }
 
             Optional<CtClass> optional1 = TransformUtils.getTargetClass(className, Constants.REDISSON_CLIENT_CLASS_NAME);
